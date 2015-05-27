@@ -1,4 +1,8 @@
 import SimpleOpenNI.*;
+import java.awt.*;
+import java.awt.event.KeyEvent;
+
+Robot robot;
 
 boolean rDrum, lDrum, rRim, lRim;
 
@@ -10,6 +14,15 @@ int[] userMap;
 
 void setup()
 {
+  
+  try {
+  robot = new Robot();
+}
+catch(AWTException a)
+{
+  
+}
+  
   size(640, 480, P3D);
   background(0);
  
@@ -27,7 +40,8 @@ void draw()
   background(0);
   kinect.update();
   
-  PImage depth = kinect.depthImage();  
+  PImage depth = kinect.depthImage();
+  image(depth,0,0);
   
   int[] users = kinect.getUsers();
   if(users.length > 0)
@@ -73,7 +87,6 @@ void handData(int userId)
   fill(0,0,255);
   ellipse(convRightHand.x, convRightHand.y, 50, 50);
   ellipse(convTorso.x, convTorso.y, 50, 50);
-  println("Hand Y : " + rightHand.y + "\nTorso Y : " + torso.y);
   stroke(0,255,0);
   strokeWeight(5);
   line(convLeftHand.x, convLeftHand.y, convRightHand.x, convRightHand.y);
@@ -85,6 +98,9 @@ void handData(int userId)
         if(!lDrum)
         {
           lDrum = true;
+          robot.keyPress(KeyEvent.VK_F);
+          robot.keyRelease(KeyEvent.VK_F);
+          println("LDRUM");
          //kkeyHit  
         }
     }
@@ -98,6 +114,9 @@ void handData(int userId)
       if(!lRim)
       {
          lRim = true;
+         robot.keyPress(KeyEvent.VK_D);
+         robot.keyRelease(KeyEvent.VK_D);
+         println("LRIM");
         //keyHit  
       }
     }
@@ -114,6 +133,9 @@ void handData(int userId)
         if(!rDrum)
         {
           rDrum = true;
+          robot.keyPress(KeyEvent.VK_J);
+          robot.keyRelease(KeyEvent.VK_J);
+          println("rDRUM");
          //kkeyHit  
         }
     }
@@ -127,6 +149,9 @@ void handData(int userId)
       if(!rRim)
       {
          rRim = true;
+         robot.keyPress(KeyEvent.VK_K);
+          robot.keyRelease(KeyEvent.VK_K);
+          println("RRIM");
         //keyHit  
       }
     }
