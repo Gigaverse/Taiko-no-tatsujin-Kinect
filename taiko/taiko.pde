@@ -3,7 +3,11 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 
 Robot robot;
+PVector convLeftHand;
+PVector leftHand;
+int midpoint;
 
+int yDrum;
 boolean rDrum, lDrum, rRim, lRim;
 
 SimpleOpenNI kinect;
@@ -25,6 +29,7 @@ catch(AWTException a)
   
   size(640, 480, P3D);
   background(0);
+  noStroke();
  
   
   kinect = new SimpleOpenNI(this);
@@ -40,8 +45,6 @@ void draw()
   background(0);
   kinect.update();
   
-  PImage depth = kinect.depthImage();
-  image(depth,0,0);
   
   int[] users = kinect.getUsers();
   if(users.length > 0)
@@ -64,15 +67,15 @@ void onNewUser(SimpleOpenNI ourContect, int userId)
 void handData(int userId)
 {
   
-  PVector leftHand = new PVector();
+  leftHand = new PVector();
   PVector rightHand = new PVector();
   PVector torso = new PVector();
        
   float confidenceL = kinect.getJointPositionSkeleton(userId,SimpleOpenNI.SKEL_LEFT_HAND,leftHand);
   float confidenceR = kinect.getJointPositionSkeleton(userId,SimpleOpenNI.SKEL_RIGHT_HAND,rightHand);
-  float confidenceTorso = kinect.getJointPositionSkeleton(userId,SimpleOpenNI.SKEL_RIGHT_HIP,torso);
+  float confidenceTorso = kinect.getJointPositionSkeleton(userId,SimpleOpenNI.SKEL_TORSO,torso);
        
-  PVector convLeftHand = new PVector();
+  convLeftHand = new PVector();
   kinect.convertRealWorldToProjective(leftHand, convLeftHand);
        
   PVector convRightHand = new PVector();
@@ -80,87 +83,126 @@ void handData(int userId)
   
   PVector convTorso = new PVector();
   kinect.convertRealWorldToProjective(torso, convTorso);
-  
+  println(leftHand.z);
   // make test line
-  fill(255,0,0);
-  ellipse(convLeftHand.x, convLeftHand.y, 50, 50);
-  fill(0,0,255);
-  ellipse(convRightHand.x, convRightHand.y, 50, 50);
-  ellipse(convTorso.x, convTorso.y, 50, 50);
-  stroke(0,255,0);
-  strokeWeight(5);
-  line(convLeftHand.x, convLeftHand.y, convRightHand.x, convRightHand.y);
   
-  if(convLeftHand.y < convTorso.y)
+  if(Math.abs(leftHand.z - torso.z) < 300)
+      fill(255,0,0);
+  else
+      fill(0, 0, 255);
+  ellipse(convLeftHand.x, convLeftHand.y, 25, 25);
+   if(Math.abs(rightHand.z - torso.z) < 300)
+      fill(255,0,0);
+  else
+      fill(0, 0, 255);
+  ellipse(convRightHand.x, convRightHand.y, 25, 25);
+  fill(255,255,255);
+  ellipse(width/2, yDrum, 25, 25);
+  
+  if(convLeftHand.y > yDrum - 10)
   {
-    if(Math.abs(leftHand.z - torso.z) < 200)
+    if(leftHand.z >= midpoint)
     {
         if(!lDrum)
         {
           lDrum = true;
           robot.keyPress(KeyEvent.VK_F);
-          robot.keyRelease(KeyEvent.VK_F);
+          
           println("LDRUM");
          //kkeyHit  
         }
     }
     else
     {
+      if(lDrum)
+        robot.keyRelease(KeyEvent.VK_F);
       lDrum = false;  
     }
     
-    if((Math.abs(leftHand.z - torso.z) >= 200))
+    if(leftHand.z < midpoint)
     {
       if(!lRim)
       {
          lRim = true;
          robot.keyPress(KeyEvent.VK_D);
-         robot.keyRelease(KeyEvent.VK_D);
          println("LRIM");
         //keyHit  
       }
     }
     else
     {
+      if(lRim)
+        robot.keyRelease(KeyEvent.VK_D);
       lRim = false;
     }
   }
-  
-  if(convRightHand.y < convTorso.y)
+  else
   {
-    if(Math.abs(rightHand.z - torso.z) < 200)
+    if(lDrum)
+        robot.keyRelease(KeyEvent.VK_F);
+    if(lRim)
+        robot.keyRelease(KeyEvent.VK_D); 
+    lDrum = false;
+    lRim = false;
+  }
+  
+  if(convRightHand.y > yDrum - 10)
+  {
+    if(rightHand.z >= midpoint)
     {
         if(!rDrum)
         {
           rDrum = true;
           robot.keyPress(KeyEvent.VK_J);
-          robot.keyRelease(KeyEvent.VK_J);
-          println("rDRUM");
+          
+          println("RDRUM");
          //kkeyHit  
         }
     }
     else
     {
-      rDrum = false;  
+      if(rDrum)
+        robot.keyRelease(KeyEvent.VK_J);
+      lDrum = false;  
     }
     
-    if((Math.abs(rightHand.z - torso.z) >= 200))
+    if(rightHand.z < midpoint)
     {
       if(!rRim)
       {
          rRim = true;
          robot.keyPress(KeyEvent.VK_K);
-          robot.keyRelease(KeyEvent.VK_K);
-          println("RRIM");
+         println("LRIM");
         //keyHit  
       }
     }
     else
     {
+      if(rRim)
+        robot.keyRelease(KeyEvent.VK_K);
       rRim = false;
     }
   }
+  else
+  {
+    if(rDrum)
+        robot.keyRelease(KeyEvent.VK_J);
+    if(rRim)
+        robot.keyRelease(KeyEvent.VK_K); 
+    rDrum = false;
+    rRim = false;
+  }
   
  
+}
+
+void keyPressed()
+{
+  if (key == CODED) {
+    if (keyCode == UP) {
+      yDrum = (int)convLeftHand.y;
+      midpoint = (int)leftHand.z;
+    }
+  }
 }
 
